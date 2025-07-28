@@ -168,7 +168,7 @@ Here are some handy pointers to get the most out of your workflow:
 
 - 📑 **Precise Chapter Selection**  
   • Use `--chapters "1-20,21,23-100"` to include exactly the chapters you want (skip fillers or extras).  
-  • Supports single numbers, ranges, and comma-separated lists.
+  • Supports single numbers, ranges, and comma-separated lists.    
   • Use `--no-partials` to skip fractional chapters such as 1.5, 30.1 or other non decimal exclusive chapters in order to prevent duplicates within your final export.
 
 - ⚙️ **Recover from Failures**  
