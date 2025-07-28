@@ -1,0 +1,6 @@
+beautifulsoup4
+cloudscraper
+lxml
+Pillow
+pypdf
+requests

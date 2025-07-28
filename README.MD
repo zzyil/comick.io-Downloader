@@ -44,12 +44,6 @@ A command-line tool to download webtoons (manhwa), comics and manga from [comick
 - Python 3.8+  
 - [pip](https://pip.pypa.io/en/stable/)
 
-Install dependencies:
-
-```bash
-pip install beautifulsoup4 cloudscraper lxml pillow pypdf requests
-```
-
 ---
 
 ## 🧰 Installation
@@ -57,6 +51,7 @@ pip install beautifulsoup4 cloudscraper lxml pillow pypdf requests
 ```bash
 git clone https://github.com/zzyil/comick.io-Downloader.git
 cd comick.io-Downloader
+python3 -m pip install -r requirements.txt
 ```
 
 ---
