@@ -153,6 +153,54 @@ python3 comick_downloader.py --cookies "$COOKIES" \
 
 ---
 
+## 💡 Tips & Tricks
+
+Here are some handy pointers to get the most out of your workflow:
+
+- 🔄 **Ongoing Series Updates**  
+  • Use `--no-cleanup` to keep your temporary data around and reuse the same settings.  
+  • Run again whenever new chapters appear, only new content will be downloaded & processed. 
+ • You can use `--restore-parameters` to restore input parameters to exactly match the previous one.
+ 
+- 🗂️ **Archiving Originals**  
+  • Add `--keep-images` to save every raw page under `comics/<Title>/Chapter_<n>/`.  
+  • Useful if you want to re-process images later (different layout, quality, etc.).
+
+- 📑 **Precise Chapter Selection**  
+  • Use `--chapters "1-20,21,23-100"` to include exactly the chapters you want (skip fillers or extras).  
+  • Supports single numbers, ranges, and comma-separated lists.
+  • Use `--no-partials` to skip fractional chapters such as 1.5, 30.1 or other non decimal exclusive chapters in order to prevent duplicates within your final export.
+
+- ⚙️ **Recover from Failures**  
+  • After a crash or network hiccup, rerun with `--restore-parameters`, which will restore all parameters except for your desired file format. 
+  *(Please remember that PDFs don't adhere to aspect ratios the same way as EPUBs & CBZs do, so going from pdf to either of them isn't recommended, the other way around works fine.)*
+
+- 🍏 **Apple Books Friendly**  
+  • Apple Books can choke on massive EPUBs— personal recommendation: split into ~10-chapter chunks: `--split 10ch`.  
+  • Alternatively, split by size: `--split 200MB`.
+
+- 📖 **EPUB Layout Recommendations**  
+  • For standard e-readers (Kindle, Kobo): `--epub-layout page`.  
+  • For continuous scroll (Apple Books, PocketBook): `--epub-layout vertical`.
+
+- 🎨 **Control Output Quality & Size**  
+  • `--quality 60` to drop JPEG quality for smaller files.  
+  • `--scaling 80` to downscale pages to 80% of the original processed size.  
+  • Combine with `--split` to keep individual file sizes manageable.
+
+- 🏷️ **Best Scanlation Version**  
+  • `--group "YourFavGroup"` to prefer a specific scanlation team or even teams by using  `--group "YourFavGroup1, YourFavGroup2"`.  
+  • Add `--mix-by-upvote` to pick the highest-upvoted release among your chosen groups.
+
+- 🔍 **Debugging & Verbose Logs**  
+  • `-v` / `--verbose` for step-by-step progress.  
+  • `-d` / `--debug` for deep image-processing insights (resizing, recombining).
+
+- 📦 **Per-Chapter Files**  
+  • Use `--keep-chapters` to save each chapter as its own PDF/EPUB/CBZ alongside the main book.
+
+---
+
 ## 📁 Output Structure
 
 *   **Temporary Data**: `tmp_<hid>/`
