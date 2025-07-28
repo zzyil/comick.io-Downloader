@@ -16,8 +16,8 @@ The most versatile, feature-rich & customizable command-line tool to download we
 - [💡 Tips & Tricks](#-tips--tricks)  
 - [📁 Output Structure](#-output-structure)  
 - [🤝 Contributing](#-contributing)  
-- [📄 License](#-license)  
 - [🙏 Acknowledgements](#-acknowledgements)  
+- [📄 License](#-license)  
 
 ---
 
@@ -246,12 +246,6 @@ Please follow the existing style and include tests where applicable.
 
 ---
 
-## 📄 License
-
-This project is licensed under the [GNU GPLv3](LICENSE).
-
----
-
 ## 🙏 Acknowledgements
 
 This project stands on the shoulders of many wonderful open-source tools and libraries—thank you to all the maintainers and contributors who make these possible, thank you:
@@ -263,5 +257,11 @@ This project stands on the shoulders of many wonderful open-source tools and lib
 - **lxml** ([lxml/lxml](https://github.com/lxml/lxml)) – Fast, feature-rich XML/HTML processing  
 - **Pillow** ([python-pillow/Pillow](https://github.com/python-pillow/Pillow)) – The friendly PIL fork for image manipulation  
 - **pypdf** ([py-pdf/pypdf](https://github.com/py-pdf/pypdf)) – PDF generation and manipulation  
+
+---
+
+## 📄 License
+
+This project is licensed under the [GNU GPLv3](LICENSE).
 
 ---
