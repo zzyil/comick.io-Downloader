@@ -15,6 +15,7 @@ The most versatile, feature-rich & customizable command-line tool to download we
 - [📖 Examples](#-examples)  
 - [💡 Tips & Tricks](#-tips--tricks)  
 - [📁 Output Structure](#-output-structure)  
+- [⚖️ Disclaimer](#️-disclaimer)
 - [🤝 Contributing](#-contributing)  
 - [🙏 Acknowledgements](#-acknowledgements)  
 - [📄 License](#-license)  
@@ -231,6 +232,12 @@ comics/
 - Final files → `comics/`  
 - Use `--no-cleanup` to inspect `tmp_<hid>/` after completion  
 - Re-run with `--restore-parameters` + new `--format` to reassemble without re-downloading
+
+---
+
+## ⚖️ Disclaimer
+
+This tool is provided strictly for educational purposes and to help you create personal, offline backups of manga to which you have legal access. Please respect the rights of content creators and publishers—unauthorized sharing, piracy, or redistribution of material is prohibited.
 
 ---
 
