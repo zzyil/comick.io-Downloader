@@ -253,7 +253,7 @@ This project stands on the shoulders of many wonderful open-source tools and lib
 - **Python** ([CPython](https://github.com/python/cpython)) – The language powering this script  
 - **requests** ([psf/requests](https://github.com/psf/requests)) – HTTP for Humans  
 - **cloudscraper** ([VeNoMouS/cloudscraper](https://github.com/VeNoMouS/cloudscraper)) – Seamless Cloudflare anti-bot bypass  
-- **Beautiful Soup** ([wention/BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/)) – HTML/XML parsing made easy  
+- **Beautiful Soup** ([BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)) – HTML/XML parsing made easy  
 - **lxml** ([lxml/lxml](https://github.com/lxml/lxml)) – Fast, feature-rich XML/HTML processing  
 - **Pillow** ([python-pillow/Pillow](https://github.com/python-pillow/Pillow)) – The friendly PIL fork for image manipulation  
 - **pypdf** ([py-pdf/pypdf](https://github.com/py-pdf/pypdf)) – PDF generation and manipulation  
