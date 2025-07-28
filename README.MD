@@ -4,6 +4,20 @@
 
 A command-line tool to download webtoons (manhwa), comics and manga from [comick.io](https://comick.io) and package them into **PDF**, **EPUB**, or **CBZ**—with intelligent image processing, resumable downloads, scanlation group prioritization, and optional chapter/file-size splitting.
 
+## 📑 Table of Contents
+
+- [🚀 Features](#features)  
+- [🛠️ Requirements](#requirements)  
+- [🧰 Installation](#installation)  
+- [🚀 Usage](#usage)  
+- [⚙️ Options](#options)  
+- [🔐 Cookie Setup](#cookie-setup)  
+- [📖 Examples](#examples)  
+- [💡 Tips & Tricks](#tips--tricks)  
+- [📁 Output Structure](#output-structure)  
+- [🤝 Contributing](#contributing)  
+- [📄 License](#license)  
+
 ---
 
 ## 🚀 Features
