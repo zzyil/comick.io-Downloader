@@ -7,10 +7,10 @@ A command-line tool to download webtoons (manhwa), comics and manga from [comick
 ## 📑 Table of Contents
 
 - [🚀 Features](#-features)  
-- [🛠️ Requirements](#-requirements)  
+- [🛠️ Requirements](#%EF%B8%8F-requirements)  
 - [🧰 Installation](#-installation)  
 - [🚀 Usage](#-usage)  
-- [⚙️ Options](#-options)  
+- [⚙️ Options](#%EF%B8%8F-options)  
 - [🔐 Cookie Setup](#-cookie-setup)  
 - [📖 Examples](#-examples)  
 - [💡 Tips & Tricks](#-tips--tricks)  
