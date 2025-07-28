@@ -17,6 +17,7 @@ The most versatile, feature-rich & customizable command-line tool to download we
 - [📁 Output Structure](#-output-structure)  
 - [🤝 Contributing](#-contributing)  
 - [📄 License](#-license)  
+- [🙏 Acknowledgements](#-acknowledgements)  
 
 ---
 
@@ -248,5 +249,19 @@ Please follow the existing style and include tests where applicable.
 ## 📄 License
 
 This project is licensed under the [GNU GPLv3](LICENSE).
+
+---
+
+## 🙏 Acknowledgements
+
+This project stands on the shoulders of many wonderful open-source tools and libraries—thank you to all the maintainers and contributors who make these possible, thank you:
+
+- **Python** ([CPython](https://github.com/python/cpython)) – The language powering this script  
+- **requests** ([psf/requests](https://github.com/psf/requests)) – HTTP for Humans  
+- **cloudscraper** ([Veox/python-cloudscraper](https://github.com/Veox/python-cloudscraper)) – Seamless Cloudflare anti-bot bypass  
+- **Beautiful Soup** ([wention/BeautifulSoup4](https://github.com/wention/BeautifulSoup4)) – HTML/XML parsing made easy  
+- **lxml** ([lxml/lxml](https://github.com/lxml/lxml)) – Fast, feature-rich XML/HTML processing  
+- **Pillow** ([python-pillow/Pillow](https://github.com/python-pillow/Pillow)) – The friendly PIL fork for image manipulation  
+- **pypdf** ([py-pdf/pypdf](https://github.com/py-pdf/pypdf)) – PDF generation and manipulation  
 
 ---
