@@ -955,7 +955,7 @@ def main():
     p.add_argument("--chapters", default="all")
     p.add_argument("--language", default="en")
     p.add_argument(
-        "--format", choices=["pdf", "epub", "cbz"], default="epub"
+        "--format", choices=["pdf", "epub", "cbz", "none"], default="epub"
     )
     p.add_argument(
         "--epub-layout", choices=["page", "vertical"], default="vertical"
@@ -1138,6 +1138,11 @@ def main():
         if width is None:
             width = 1500
         aspect_ratio_str = None
+    elif args.format == "none":
+        if width is None:
+            width = 1500
+        aspect_ratio_str = None
+        args.keep_images = True
 
     recombine_target_height = 0
     if aspect_ratio_str:
@@ -1512,7 +1517,9 @@ def main():
             )
 
     if current_book_content:
-        if split_size_bytes > 0 or split_chapter_count > 0:
+        if args.format == "none":
+            pass
+        elif split_size_bytes > 0 or split_chapter_count > 0:
             build_book_part(
                 args,
                 base_filename,
