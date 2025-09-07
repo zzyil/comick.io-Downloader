@@ -987,6 +987,7 @@ def get_processing_params(args, calculated_width, calculated_aspect_ratio):
         "group": args.group,
         "mix_by_upvote": args.mix_by_upvote,
         "no_partials": args.no_partials,
+        "no_processing": args.no_processing,
     }
 
 
@@ -1089,6 +1090,12 @@ def main():
         "--debug",
         action="store_true",
         help="Enable highly detailed debug-level logging for image processing.",
+    )
+    p.add_argument(
+        "--no-processing",
+        action="store_true",
+        help="Skip all image post-processing (resize, recombine, scaling). "
+        "Builds formats directly from the raw downloaded images.",
     )
     args = p.parse_args()
 
@@ -1207,6 +1214,14 @@ def main():
     width = args.width
     aspect_ratio_str = args.aspect_ratio
 
+    if args.no_processing:
+        # No processing: ignore aspect/width/scaling messages and recombine logic.
+        aspect_ratio_str = None
+        log_verbose(
+            "No-processing: raw images will be packaged as-is. "
+            "Skipping resize, recombine, and scaling."
+        )
+
     if args.format == "epub":
         if args.epub_layout == "page":
             if width is None:
@@ -1234,19 +1249,19 @@ def main():
         args.keep_images = True
 
     recombine_target_height = 0
-    if aspect_ratio_str:
+    if not args.no_processing and aspect_ratio_str:
         ratio = parse_aspect_ratio(aspect_ratio_str)
         recombine_target_height = int(width * ratio)
         log_verbose(
             f"  Processing images at {width}px width, aspect ratio {aspect_ratio_str} (~{recombine_target_height}px height)"
         )
-    else:
+    elif not args.no_processing:
         log_verbose(
             f"  Processing images at {width}px width (original aspect ratio)"
         )
 
     scale_factor = args.scaling / 100.0
-    if scale_factor != 1.0:
+    if not args.no_processing and scale_factor != 1.0:
         log_verbose(
             f"  Final images will be scaled to {args.scaling}% of this size."
         )
@@ -1387,18 +1402,37 @@ def main():
         chapter_content_size = 0
         process_this_chapter = True
 
-        marker_path = os.path.join(tdir, ".processed_complete")
+        # Use a different marker when skipping processing
+        marker_name = (
+            ".download_complete" if args.no_processing else ".processed_complete"
+        )
+        marker_path = os.path.join(tdir, marker_name)
 
         if resume_mode and os.path.exists(marker_path):
             print(f"\nChapter {n} (already processed, collecting files)")
-            # For all formats, the source of truth is the processed images.
-            processed_images = sorted(
-                glob.glob(os.path.join(processed_tdir, "*.jpg"))
-            )
+            # Source images:
+            # - no-processing: raw downloads from chapter dir
+            # - normal: processed images from 'processed' dir
+            if args.no_processing:
+                raw_images = glob.glob(os.path.join(tdir, f"{n}_*.jpg"))
+                try:
+                    source_images = sorted(
+                        raw_images,
+                        key=lambda p: int(
+                            os.path.splitext(os.path.basename(p))[0]
+                            .split("_")[-1]
+                        ),
+                    )
+                except Exception:
+                    source_images = sorted(raw_images)
+            else:
+                source_images = sorted(
+                    glob.glob(os.path.join(processed_tdir, "*.jpg"))
+                )
 
-            if not processed_images:
+            if not source_images:
                 log_verbose(
-                    f"  Warning: Found process marker for Ch {n} but no processed images. Re-processing."
+                    f"  Warning: Found process marker for Ch {n} but no images. Re-processing."
                 )
                 rm_tree(tdir)
                 # process_this_chapter remains True
@@ -1411,9 +1445,7 @@ def main():
                         main_tmp_dir, f"{base_filename}_Ch_{n}.pdf"
                     )
                     log_debug(f"  Re-building temp PDF for Ch {n}...")
-                    sheets = [
-                        Image.open(p).convert("RGB") for p in processed_images
-                    ]
+                    sheets = [Image.open(p).convert("RGB") for p in source_images]
                     if sheets:
                         sheets[0].save(
                             ch_pdf_path,
@@ -1425,7 +1457,7 @@ def main():
                         chapter_content = []
                 else:
                     # For EPUB/CBZ, just use the image paths.
-                    chapter_content = processed_images
+                    chapter_content = source_images
 
                 if chapter_content:
                     chapter_content_size = sum(
@@ -1492,57 +1524,73 @@ def main():
                     else:
                         shutil.copytree(tdir, dest_dir)
 
-            log_verbose(f"  Processing {len(downloaded_images)} images...")
-            if args.format in ["epub", "cbz"]:
-                pages_in_memory = process_chapter_images(
-                    downloaded_images, width, recombine_target_height
-                )
-            else:
-                pages_in_memory = resize_chapter_images(
-                    downloaded_images, width
-                )
-
-            log_verbose(f"  Applying {args.scaling}% scaling...")
-            scaled_images_in_mem = [
-                img.resize(
-                    (
-                        int(img.width * scale_factor),
-                        int(img.height * scale_factor),
-                    ),
-                    Image.LANCZOS,
-                )
-                for img in pages_in_memory
-            ]
-
-            images_to_save = scaled_images_in_mem
-            if (
-                args.scaling < 100
-                and args.format in ["epub", "cbz"]
-                and recombine_target_height > 0
-            ):
-                images_to_save = recombine_scaled_images(
-                    scaled_images_in_mem, recombine_target_height
-                )
-
-            final_page_paths = save_final_images(
-                images_to_save, processed_tdir, f"p_{n}", args.quality
-            )
-
-            chapter_content = final_page_paths
-            if args.format == "pdf":
-                ch_pdf_path = os.path.join(
-                    main_tmp_dir, f"{base_filename}_Ch_{n}.pdf"
-                )
-                sheets = [
-                    Image.open(p).convert("RGB") for p in final_page_paths
-                ]
-                if sheets:
-                    sheets[0].save(
-                        ch_pdf_path, save_all=True, append_images=sheets[1:]
+            if args.no_processing:
+                # No processing: use raw downloads directly.
+                chapter_content = downloaded_images
+                if args.format == "pdf":
+                    ch_pdf_path = os.path.join(
+                        main_tmp_dir, f"{base_filename}_Ch_{n}.pdf"
                     )
-                    chapter_content = [ch_pdf_path]
+                    sheets = [Image.open(p).convert("RGB") for p in chapter_content]
+                    if sheets:
+                        sheets[0].save(
+                            ch_pdf_path, save_all=True, append_images=sheets[1:]
+                        )
+                        chapter_content = [ch_pdf_path]
+                    else:
+                        chapter_content = []
+            else:
+                log_verbose(f"  Processing {len(downloaded_images)} images...")
+                if args.format in ["epub", "cbz"]:
+                    pages_in_memory = process_chapter_images(
+                        downloaded_images, width, recombine_target_height
+                    )
                 else:
-                    chapter_content = []
+                    pages_in_memory = resize_chapter_images(
+                        downloaded_images, width
+                    )
+
+                log_verbose(f"  Applying {args.scaling}% scaling...")
+                scaled_images_in_mem = [
+                    img.resize(
+                        (
+                            int(img.width * scale_factor),
+                            int(img.height * scale_factor),
+                        ),
+                        Image.LANCZOS,
+                    )
+                    for img in pages_in_memory
+                ]
+
+                images_to_save = scaled_images_in_mem
+                if (
+                    args.scaling < 100
+                    and args.format in ["epub", "cbz"]
+                    and recombine_target_height > 0
+                ):
+                    images_to_save = recombine_scaled_images(
+                        scaled_images_in_mem, recombine_target_height
+                    )
+
+                final_page_paths = save_final_images(
+                    images_to_save, processed_tdir, f"p_{n}", args.quality
+                )
+
+                chapter_content = final_page_paths
+                if args.format == "pdf":
+                    ch_pdf_path = os.path.join(
+                        main_tmp_dir, f"{base_filename}_Ch_{n}.pdf"
+                    )
+                    sheets = [
+                        Image.open(p).convert("RGB") for p in final_page_paths
+                    ]
+                    if sheets:
+                        sheets[0].save(
+                            ch_pdf_path, save_all=True, append_images=sheets[1:]
+                        )
+                        chapter_content = [ch_pdf_path]
+                    else:
+                        chapter_content = []
 
             if chapter_content:
                 with open(marker_path, "w") as f:
@@ -1564,7 +1612,7 @@ def main():
             if args.format == "epub":
                 chapter_marker = [{"ch": ch, "page_index": 0}]
                 build_epub(
-                    final_page_paths,
+                    chapter_content,
                     ch_out_path,
                     ch_title,
                     args.language,
@@ -1576,7 +1624,7 @@ def main():
                 )
             elif args.format == "cbz":
                 build_cbz(
-                    final_page_paths,
+                    chapter_content,
                     ch_out_path,
                     ch_title,
                     comic_data,

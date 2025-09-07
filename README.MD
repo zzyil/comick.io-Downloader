@@ -30,6 +30,8 @@ The most versatile, feature-rich & customizable command-line tool to download we
   Prioritize your favorite scanlation group(s), or choose by highest upvotes.
 - 🖼️ **Image Processing**  
   Resize, scale, recombine, and compress images for optimal reading.
+- 🚫 **No-Processing Mode**  
+  Package raw pages as-is into PDF/EPUB/CBZ (skip all resizing/recombining/scaling) via `--no-processing`.
 - 📁 **Multiple Formats**  
   Export as PDF, fixed-layout EPUB, vertical-scroll EPUB, or CBZ.
 - 🔄 **Resumable Downloads**  
@@ -126,6 +128,7 @@ Run `python3 comick_downloader.py --help` for the full option list.
 | `--aspect-ratio STRING`       | Target W:H ratio (e.g. `4:3` or `2.5`). Not used for PDF.                                                                                                                                                                     | _auto_      |
 | `--quality INT`               | JPEG quality `%` (1–100).                                                                                                                                                                                                     | `85`        |
 | `--scaling INT`               | Final image scale `%` (1–100).                                                                                                                                                                                                | `100`       |
+| `--no-processing`             | Skip all image post-processing (resize, recombine, scaling). Build formats directly from the raw downloaded images.                                                                                                           | `False`     |
 | `--split STRING`              | Split by size (`400MB`) or chapters (`10ch`).                                                                                                                                                                                | `None`      |
 | `--restore-parameters`        | Reuse saved processing settings (for format-only reassembly).                                                                                                                                                                 | `False`     |
 | `--keep-images`               | Retain raw downloaded images under `comics/<Title>/Chapter_<n>/`.                                                                                                                                                             | `False`     |
@@ -148,7 +151,7 @@ Then run:
 
 ```bash
 python3 comick_downloader.py --cookies "$COOKIES" \
-  https://comick.io/comic/your-comic-url
+  "https://comick.io/comic/your-comic-url"
 ```
 
 ---
@@ -165,7 +168,7 @@ python3 comick_downloader.py --cookies "$COOKIES" \
      --format epub \
      --epub-layout page \
      --verbose \
-     https://comick.io/comic/demo-comic
+     "https://comick.io/comic/demo-comic"
    ```
 
 2. **Vertical EPUB**, chapters 1–20, split every 5 chapters, verbose & debug:
@@ -178,7 +181,7 @@ python3 comick_downloader.py --cookies "$COOKIES" \
      --epub-layout vertical \
      --split 5ch \
      --verbose --debug \
-     https://comick.io/comic/demo-comic
+     "https://comick.io/comic/demo-comic"
    ```
 
 3. **CBZ**, chapters 1–2, one chapter per file:
@@ -189,7 +192,7 @@ python3 comick_downloader.py --cookies "$COOKIES" \
      --chapters "1-2" \
      --format cbz \
      --split 1ch \
-     https://comick.io/comic/demo-comic
+     "https://comick.io/comic/demo-comic"
    ```
 
 4. **PDF**, chapters 1–2, save each chapter separately:
@@ -200,7 +203,26 @@ python3 comick_downloader.py --cookies "$COOKIES" \
      --chapters "1-2" \
      --format pdf \
      --keep-chapters \
-     https://comick.io/comic/demo-comic
+     "https://comick.io/comic/demo-comic"
+   ```
+
+5. **Raw CBZ**, chapters 1–50 (no resizing/recombining/scaling):
+
+   ```bash
+   python3 comick_downloader.py \
+     --chapters "1-50" \
+     --format cbz \
+     --no-processing \
+     "https://comick.io/comic/demo-comic"
+   ```
+
+6. **Raw EPUB** (pages copied as-is):
+
+   ```bash
+   python3 comick_downloader.py \
+    --format epub \
+    --no-processing \
+    "https://comick.io/comic/demo-comic"
    ```
 
 ---
@@ -217,6 +239,11 @@ Here are some handy pointers to get the most out of your workflow:
 - 🗂️ **Archiving Originals**  
   • Add `--keep-images` to save every raw page under `comics/<Title>/Chapter_<n>/`.  
   • Useful if you want to re-process images later (different layout, quality, etc.).
+
+- 🧾 **Raw Packaging (No Processing)**  
+  • Use `--no-processing` to package pages exactly as downloaded into CBZ/EPUB/PDF.  
+  • Skips resize/recombine/scaling; great if you prefer untouched originals inside the final file.  
+  • Combine with `--keep-chapters` to generate one raw file per chapter.
 
 - 📑 **Precise Chapter Selection**  
   • Use `--chapters "1-20,21,23-100"` to include exactly the chapters you want (skip fillers or extras).  
