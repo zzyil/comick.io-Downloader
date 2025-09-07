@@ -43,8 +43,49 @@ The most versatile, feature-rich & customizable command-line tool to download we
 
 ## 🛠️ Requirements
 
-- Python 3.8+  
-- [pip](https://pip.pypa.io/en/stable/)
+
+- Python
+  - Officially supported: 3.8+
+  - Best-effort (tested): 3.7 (may require building Pillow from source on some platforms)
+  - Not supported: 3.6 and Python 2.x
+- OS: macOS, Linux, Windows
+- Python packages (installed via requirements.txt)
+  - beautifulsoup4
+  - cloudscraper
+  - lxml
+  - Pillow
+  - pypdf
+  - requests
+- Notes for macOS (Apple Silicon), Python 3.7 only:
+  - Building Pillow from source may require system libraries. If you see build errors,
+    install via Homebrew:
+    - brew install jpeg-turbo libpng freetype libtiff webp little-cms2 zlib
+  - Ensure Xcode command line tools are installed: xcode-select --install
+
+Feature support by Python version
+
+- Legend:
+  - ✅ Supported
+  - ⚠️ Supported with caveats (see notes)
+  - ❌ Not supported
+
+| Python | PDF | EPUB (page) | EPUB (vertical) | CBZ | Resume/Restore | Split (size/ch) | Keep images | Group priority/mix-by-upvote | Cloudscraper | lxml parser |
+| ------ | --- | ----------- | --------------- | --- | -------------- | --------------- | ----------- | ---------------------------- | ------------ | ----------- |
+| 3.13   | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.12   | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.11   | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.10   | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.9    | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.8    | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅           | ✅          |
+| 3.7    | ✅  | ✅          | ✅              | ✅  | ✅             | ✅              | ✅          | ✅                           | ✅          | ✅ (fallback to html.parser if lxml unavailable) |
+| 3.6    | ❌  | ❌          | ❌              | ❌  | ❌             | ❌              | ❌          | ❌                           | ❌          | ❌          |
+| 2.7    | ❌  | ❌          | ❌              | ❌  | ❌             | ❌              | ❌          | ❌                           | ❌          | ❌          |
+
+Notes:
+- Cloudscraper is optional. If it’s not available or fails to initialize, the downloader
+  automatically falls back to requests.Session.
+- The HTML parser prefers lxml if installed, and falls back to the built-in html.parser.
+- On macOS (Apple Silicon), Python 3.7 may need system libraries to build Pillow.
 
 ---
 
@@ -245,9 +286,10 @@ This tool is provided strictly for educational purposes and to help you create p
 
 1. Fork the repo  
 2. Create a feature branch (`git checkout -b feature/foo`)  
-3. Commit (`git commit -m "Add foo"`)  
-4. Push (`git push origin feature/foo`)  
-5. Open a Pull Request  
+3. Test your update with `/test_scripts/python_version_tester.sh`
+4. Commit (`git commit -m "Add foo"`)  
+5. Push (`git push origin feature/foo`)  
+7. Open a Pull Request  
 
 Please follow the existing style and include tests where applicable.
 
