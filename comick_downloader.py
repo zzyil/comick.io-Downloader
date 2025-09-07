@@ -15,12 +15,24 @@ import time
 import xml.sax.saxutils
 import zipfile
 from typing import Dict, List
+from bs4 import BeautifulSoup, FeatureNotFound
 
-import cloudscraper
+# cloudscraper is optional; fall back to requests.Session if unavailable
+try:
+    import cloudscraper  # type: ignore
+except Exception:  # pragma: no cover
+    cloudscraper = None
+
 import requests
-from bs4 import BeautifulSoup
+
+# Detect lxml availability (ensure C extension is importable)
+try:
+    from lxml import etree as _lxml_etree  # noqa: F401
+    _HAS_LXML = True
+except Exception:
+    _HAS_LXML = False
+
 from PIL import Image
-from pypdf import PdfMerger
 
 API_BASE_URL = "https://api.comick.io"
 _VERBOSE = False  # Global flag for standard verbose output
@@ -804,16 +816,22 @@ a:hover, a:active { text-decoration: underline; }
         f'<meta property="rendition:flow">{rendition_flow}</meta>'
     )
 
+    # Precompute joined XML fragments to avoid backslashes inside f-string
+    # expressions (needed for Python 3.7–3.11 compatibility).
+    metadata_xml = "\n        ".join(metadata_items)
+    manifest_xml = "\n        ".join(manifest_items)
+    spine_xml = "\n        ".join(spine_items)
+
     package_document = f'''<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="bookid" version="3.0" prefix="rendition: http://www.idpf.org/vocab/rendition/#">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:opf="http://www.idpf.org/2007/opf">
-        {"\n        ".join(metadata_items)}
+        {metadata_xml}
     </metadata>
     <manifest>
-        {"\n        ".join(manifest_items)}
+        {manifest_xml}
     </manifest>
     <spine>
-        {"\n        ".join(spine_items)}
+        {spine_xml}
     </spine>
 </package>'''
     with open(os.path.join(epub_dir, "content.opf"), "w") as f:
@@ -837,6 +855,55 @@ a:hover, a:active { text-decoration: underline; }
     shutil.rmtree(temp_dir)
     print(f"EPUB saved \u2192 {os.path.basename(out_path)}")
 
+def merge_pdf_files(input_paths, out_path, metadata):
+    """
+    Cross-version PDF merge:
+    - pypdf >= 5: use PdfWriter.append
+    - older pypdf: use PdfWriter + PdfReader pages
+    - very old pypdf: fall back to PdfMerger (if available)
+    Always writes to a binary file handle.
+    """
+    # 1) Try PdfWriter-first path (works on pypdf >= 5 and many older versions)
+    try:
+        from pypdf import PdfWriter, PdfReader
+        writer = PdfWriter()
+        if hasattr(writer, "append"):
+            for p in input_paths:
+                writer.append(p)
+        else:
+            # Older writer: add pages manually
+            for p in input_paths:
+                reader = PdfReader(p)
+                for page in reader.pages:
+                    writer.add_page(page)
+        if metadata:
+            writer.add_metadata(metadata)
+        with open(out_path, "wb") as f:
+            writer.write(f)
+        try:
+            writer.close()
+        except Exception:
+            pass
+        return
+    except Exception:
+        pass
+
+    # 2) Fallback: PdfMerger (available in older pypdf versions)
+    try:
+        from pypdf import PdfMerger
+        merger = PdfMerger()
+        for p in input_paths:
+            merger.append(p)
+        if metadata:
+            merger.add_metadata(metadata)
+        with open(out_path, "wb") as f:
+            merger.write(f)
+        merger.close()
+        return
+    except Exception as e:
+        raise RuntimeError(
+            "PDF merge failed with both PdfWriter and PdfMerger."
+        ) from e
 
 def build_book_part(
     args,
@@ -864,18 +931,14 @@ def build_book_part(
 
     if args.format == "pdf":
         final_path = os.path.join(out_dir, f"{part_filename}.pdf")
-        merger = PdfMerger()
-        for pdf_part_path in book_content:
-            merger.append(pdf_part_path)
-        merger.add_metadata(
+        merge_pdf_files(
+            book_content,
+            final_path,
             {
                 "/Title": part_title,
                 "/Author": ", ".join(comic_data.get("authors", [])),
-            }
+            },
         )
-        with open(final_path, "wb") as f:
-            merger.write(f)
-        merger.close()
         print(f"PDF part saved → {os.path.basename(final_path)}")
         for p in book_content:
             os.remove(p)
@@ -1042,9 +1105,27 @@ def main():
     _VERBOSE = args.verbose
     _DEBUG = args.debug
 
-    scraper = cloudscraper.create_scraper(
-        browser={"browser": "chrome", "platform": "darwin", "mobile": False}
-    )
+    # Create HTTP session:
+    # - Prefer cloudscraper on Python >= 3.7
+    # - On Python < 3.7 or any init error, fall back to requests.Session
+    use_cloudscraper = cloudscraper is not None and sys.version_info >= (3, 7)
+    if use_cloudscraper:
+        try:
+            scraper = cloudscraper.create_scraper(
+                browser={
+                    "browser": "chrome",
+                    "platform": "darwin",
+                    "mobile": False,
+                }
+            )
+        except Exception as e:
+            log_verbose(
+                f"  Warning: cloudscraper init failed ({e}). "
+                "Falling back to requests.Session()"
+            )
+            scraper = requests.Session()
+    else:
+        scraper = requests.Session()
     scraper.headers.update(
         {"Referer": "https://comick.io/", "Origin": "https://comick.io/"}
     )
@@ -1054,7 +1135,14 @@ def main():
         )
 
     html = make_request(args.comic_url, scraper).text
-    soup = BeautifulSoup(html, "lxml")
+    # Prefer lxml when available, but fall back automatically if not
+    try:
+        parser = "lxml" if _HAS_LXML else "html.parser"
+        soup = BeautifulSoup(html, parser)
+    except FeatureNotFound:
+        # If bs4 still can't use lxml for any reason, fall back
+        soup = BeautifulSoup(html, "html.parser")
+
     m = soup.find("script", id="__NEXT_DATA__", type="application/json")
     if not m:
         sys.exit("Cannot locate __NEXT_DATA__.")
@@ -1382,7 +1470,27 @@ def main():
             if args.keep_images:
                 dest_dir = os.path.join(out_dir, safe_title, f"Chapter_{n}")
                 log_verbose(f"  Copying original images to: {dest_dir}")
-                shutil.copytree(tdir, dest_dir, dirs_exist_ok=True)
+                # Python 3.7 doesn't support dirs_exist_ok. Fallback if needed.
+                try:
+                    shutil.copytree(tdir, dest_dir, dirs_exist_ok=True)
+                except TypeError:
+                    if os.path.exists(dest_dir):
+                        # Emulate dirs_exist_ok=True
+                        for root, dirs, files in os.walk(tdir):
+                            rel = os.path.relpath(root, tdir)
+                            target = (
+                                os.path.join(dest_dir, rel)
+                                if rel != "."
+                                else dest_dir
+                            )
+                            os.makedirs(target, exist_ok=True)
+                            for fname in files:
+                                shutil.copy2(
+                                    os.path.join(root, fname),
+                                    os.path.join(target, fname),
+                                )
+                    else:
+                        shutil.copytree(tdir, dest_dir)
 
             log_verbose(f"  Processing {len(downloaded_images)} images...")
             if args.format in ["epub", "cbz"]:
@@ -1556,18 +1664,14 @@ def main():
                     args.language,
                 )
             elif args.format == "pdf":
-                merger = PdfMerger()
-                for pdf_part_path in current_book_content:
-                    merger.append(pdf_part_path)
-                merger.add_metadata(
+                merge_pdf_files(
+                    current_book_content,
+                    final_path,
                     {
                         "/Title": title,
                         "/Author": ", ".join(comic_data.get("authors", [])),
-                    }
+                    },
                 )
-                with open(final_path, "wb") as f:
-                    merger.write(f)
-                merger.close()
                 print(f"PDF saved → {os.path.basename(final_path)}")
                 for p in current_book_content:
                     os.remove(p)
