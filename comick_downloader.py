@@ -20,7 +20,7 @@ import cloudscraper
 import requests
 from bs4 import BeautifulSoup
 from PIL import Image
-from pypdf import PdfWriter
+from pypdf import PdfMerger
 
 API_BASE_URL = "https://api.comick.io"
 _VERBOSE = False  # Global flag for standard verbose output
@@ -864,7 +864,7 @@ def build_book_part(
 
     if args.format == "pdf":
         final_path = os.path.join(out_dir, f"{part_filename}.pdf")
-        merger = PdfWriter()
+        merger = PdfMerger()
         for pdf_part_path in book_content:
             merger.append(pdf_part_path)
         merger.add_metadata(
@@ -873,7 +873,8 @@ def build_book_part(
                 "/Author": ", ".join(comic_data.get("authors", [])),
             }
         )
-        merger.write(final_path)
+        with open(final_path, "wb") as f:
+            merger.write(f)
         merger.close()
         print(f"PDF part saved → {os.path.basename(final_path)}")
         for p in book_content:
@@ -1555,7 +1556,7 @@ def main():
                     args.language,
                 )
             elif args.format == "pdf":
-                merger = PdfWriter()
+                merger = PdfMerger()
                 for pdf_part_path in current_book_content:
                     merger.append(pdf_part_path)
                 merger.add_metadata(
@@ -1564,7 +1565,8 @@ def main():
                         "/Author": ", ".join(comic_data.get("authors", [])),
                     }
                 )
-                merger.write(final_path)
+                with open(final_path, "wb") as f:
+                    merger.write(f)
                 merger.close()
                 print(f"PDF saved → {os.path.basename(final_path)}")
                 for p in current_book_content:
