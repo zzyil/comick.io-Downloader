@@ -1,5 +1,9 @@
 # comick.io Downloader 📚
 
+> [!IMPORTANT]
+> comick.io seems to have been shutdown. Once a new platform establishes itself I will rewrite this project for said platform, thank you for your support everybody!
+
+
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/) [![GNU GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 The most versatile, feature-rich & customizable command-line tool to download webtoons (manhwa), comics and manga from [comick.io](https://comick.io) and package them into **PDF**, **EPUB**, or **CBZ**—with intelligent image processing, resumable downloads, scanlation group prioritization, and optional chapter/file-size splitting.
